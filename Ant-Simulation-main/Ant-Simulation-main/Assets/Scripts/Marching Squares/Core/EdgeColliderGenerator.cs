@@ -7,7 +7,7 @@ public class EdgeColliderGenerator {
 	Dictionary<int, OutlinePoint> outlinePoints = new Dictionary<int, OutlinePoint> ();
 	List<Vector3> vertices;
 
-	public Path[] Generate2DColliders (MeshData meshData) {
+	public ColliderPath[] Generate2DColliders (MeshData meshData) {
 		this.vertices = meshData.vertices;
 
 		outlinePoints.Clear ();
@@ -16,16 +16,16 @@ public class EdgeColliderGenerator {
 		}
 
 		// Set up edge colliders
-		List<Path> paths = new List<Path> ();
+		List<ColliderPath> paths = new List<ColliderPath> ();
 		while (outlinePoints.Count > 0) {
-			paths.Add (new Path (ExtractOutline ()));
+			paths.Add (new ColliderPath (ExtractOutline ()));
 		}
 
 		return paths.ToArray ();
 
 	}
 
-	public static void SetColliders (GameObject gameObject, Path[] paths) {
+	public static void SetColliders (GameObject gameObject, ColliderPath[] paths) {
 
 		// Set up edge colliders
 		var edgeColliders = gameObject.GetComponents<EdgeCollider2D> ();
@@ -130,10 +130,10 @@ public class EdgeColliderGenerator {
 	}
 }
 
-public class Path {
+public class ColliderPath {
 	public Vector2[] points;
 
-	public Path (Vector2[] points) {
+	public ColliderPath (Vector2[] points) {
 		this.points = points;
 	}
 }

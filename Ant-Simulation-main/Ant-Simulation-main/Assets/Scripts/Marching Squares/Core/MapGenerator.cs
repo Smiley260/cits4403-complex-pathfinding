@@ -301,7 +301,7 @@ public class MapGenerator : MonoBehaviour {
 
 		MeshData meshData;
 		Vector2Int chunkIndex;
-		Path[] colliderPaths;
+		ColliderPath[] colliderPaths;
 		MarchingSquares marchingSquares;
 		EdgeColliderGenerator colliderGenerator;
 
