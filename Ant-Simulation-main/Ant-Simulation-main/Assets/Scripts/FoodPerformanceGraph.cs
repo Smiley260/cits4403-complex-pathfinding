@@ -33,16 +33,16 @@ public class FoodPerformanceGraph : MonoBehaviour
     public bool showGraph = true;
 
     [Tooltip("Initial window position and size in the Game view.")]
-    public Rect windowRect = new Rect(25f, 25f, 620f, 430f);
+    public Rect windowRect = new Rect(25f, 25f, 1000f, 520f);
 
-    [Min(300f)]
-    public float minimumWindowWidth = 400f;
+    [Min(700f)]
+    public float minimumWindowWidth = 900f;
 
-    [Min(220f)]
-    public float minimumWindowHeight = 280f;
+    [Min(400f)]
+    public float minimumWindowHeight = 480f;
 
-    [Min(30f)]
-    public float minimizedWindowHeight = 34f;
+    [Min(34f)]
+    public float minimizedWindowHeight = 40f;
 
     [Tooltip("Number of recent points displayed live.")]
     [Min(20)]
@@ -66,7 +66,6 @@ public class FoodPerformanceGraph : MonoBehaviour
 
     private class Sample
     {
-        public int timeStep;
         public float timeSeconds;
 
         public int antTotalFood;
@@ -129,8 +128,24 @@ public class FoodPerformanceGraph : MonoBehaviour
     private GUIStyle smallStyle;
     private GUIStyle buttonStyle;
     private GUIStyle headerBoxStyle;
+    private GUIStyle statsHeaderStyle;
+    private GUIStyle statsLabelStyle;
+    private GUIStyle statsValueStyle;
+    private GUIStyle statsNoteStyle;
+    private GUIStyle reopenTabStyle;
 
     private const int WindowId = 438271;
+
+    // Small persistent tab shown in the bottom-left when the graph is closed.
+    [Header("Reopen Tab")]
+    [Tooltip("Show a small tab in the bottom-left corner when the graph is closed.")]
+    public bool showReopenTab = true;
+
+    [Min(20f)]
+    public float reopenTabWidth = 44f;
+
+    [Min(20f)]
+    public float reopenTabHeight = 26f;
 
     public static bool IsPointerOverGraphWindow { get; private set; }
 
@@ -366,7 +381,6 @@ public class FoodPerformanceGraph : MonoBehaviour
 
         currentStep++;
 
-        sample.timeStep = currentStep;
         sample.timeSeconds = simulationTime;
 
         sample.antTotalFood = antTotal;
@@ -972,69 +986,147 @@ public class FoodPerformanceGraph : MonoBehaviour
 
     private void InitialiseGuiStyles()
     {
-        if (headerTitleStyle != null)
+        // OnGUI can be invoked during Unity layout/repaint before every Start
+        // detail has been initialised. Initialise each style independently so
+        // a partially-initialised GUI can never leave a null style behind.
+        if (graphTexture == null || headerTexture == null)
         {
-            return;
+            CreateGraphTexture();
         }
 
-        headerTitleStyle =
-            new GUIStyle(GUI.skin.label);
+        if (headerTitleStyle == null)
+        {
+            headerTitleStyle =
+                new GUIStyle(GUI.skin.label);
+        }
 
         headerTitleStyle.fontSize = 16;
-        headerTitleStyle.fontStyle =
-            FontStyle.Bold;
+        headerTitleStyle.fontStyle = FontStyle.Bold;
+        headerTitleStyle.alignment = TextAnchor.MiddleLeft;
+        headerTitleStyle.normal.textColor = Color.white;
 
-        headerTitleStyle.alignment =
-            TextAnchor.MiddleLeft;
-
-        headerTitleStyle.normal.textColor =
-            Color.white;
-
-        headerSubtitleStyle =
-            new GUIStyle(GUI.skin.label);
+        if (headerSubtitleStyle == null)
+        {
+            headerSubtitleStyle =
+                new GUIStyle(GUI.skin.label);
+        }
 
         headerSubtitleStyle.fontSize = 10;
+        headerSubtitleStyle.alignment = TextAnchor.MiddleLeft;
+        headerSubtitleStyle.normal.textColor = Color.white;
 
-        headerSubtitleStyle.alignment =
-            TextAnchor.MiddleLeft;
-
-        headerSubtitleStyle.normal.textColor =
-            Color.white;
-
-        labelStyle =
-            new GUIStyle(GUI.skin.label);
+        if (labelStyle == null)
+        {
+            labelStyle =
+                new GUIStyle(GUI.skin.label);
+        }
 
         labelStyle.fontSize = 12;
-        labelStyle.normal.textColor =
-            Color.white;
+        labelStyle.normal.textColor = Color.white;
 
-        smallStyle =
-            new GUIStyle(GUI.skin.label);
+        if (smallStyle == null)
+        {
+            smallStyle =
+                new GUIStyle(GUI.skin.label);
+        }
 
         smallStyle.fontSize = 10;
-        smallStyle.normal.textColor =
-            Color.white;
+        smallStyle.normal.textColor = Color.white;
 
-        buttonStyle =
-            new GUIStyle(GUI.skin.button);
+        if (buttonStyle == null)
+        {
+            buttonStyle =
+                new GUIStyle(GUI.skin.button);
+        }
 
         buttonStyle.fontSize = 10;
 
-        headerBoxStyle =
-            new GUIStyle(GUI.skin.box);
+        if (headerBoxStyle == null)
+        {
+            headerBoxStyle =
+                new GUIStyle(GUI.skin.box);
+        }
 
-        headerBoxStyle.normal.background =
-            headerTexture;
+        headerBoxStyle.normal.background = headerTexture;
+
+        if (statsHeaderStyle == null)
+        {
+            statsHeaderStyle =
+                new GUIStyle(GUI.skin.label);
+        }
+
+        statsHeaderStyle.fontSize = 14;
+        statsHeaderStyle.fontStyle = FontStyle.Bold;
+        statsHeaderStyle.alignment = TextAnchor.MiddleLeft;
+        statsHeaderStyle.normal.textColor = Color.white;
+
+        if (statsLabelStyle == null)
+        {
+            statsLabelStyle =
+                new GUIStyle(GUI.skin.label);
+        }
+
+        statsLabelStyle.fontSize = 10;
+        statsLabelStyle.alignment = TextAnchor.MiddleLeft;
+        statsLabelStyle.normal.textColor = Color.white;
+        statsLabelStyle.wordWrap = false;
+        statsLabelStyle.padding = new RectOffset(4, 2, 0, 0);
+
+        if (statsValueStyle == null)
+        {
+            statsValueStyle =
+                new GUIStyle(GUI.skin.label);
+        }
+
+        statsValueStyle.fontSize = 10;
+        statsValueStyle.alignment = TextAnchor.MiddleRight;
+        statsValueStyle.normal.textColor = Color.white;
+        statsValueStyle.padding = new RectOffset(2, 5, 0, 0);
+
+        if (statsNoteStyle == null)
+        {
+            statsNoteStyle =
+                new GUIStyle(GUI.skin.label);
+        }
+
+        statsNoteStyle.fontSize = 9;
+        statsNoteStyle.alignment = TextAnchor.UpperLeft;
+        statsNoteStyle.normal.textColor = new Color(0.82f, 0.82f, 0.84f, 1f);
+        statsNoteStyle.wordWrap = true;
+        statsNoteStyle.padding = new RectOffset(3, 3, 0, 0);
+
+        if (reopenTabStyle == null)
+        {
+            reopenTabStyle =
+                new GUIStyle(GUI.skin.button);
+        }
+
+        reopenTabStyle.fontSize = 11;
+        reopenTabStyle.fontStyle = FontStyle.Bold;
+        reopenTabStyle.alignment = TextAnchor.MiddleCenter;
+        reopenTabStyle.padding = new RectOffset(2, 2, 2, 2);
     }
 
     private void OnGUI()
     {
+        InitialiseGuiStyles();
+
+        // Never let stale IMGUI hot-control state prevent the reopen tab from
+        // being usable after closing or minimising the window.
+        if (!showGraph && resizing)
+        {
+            resizing = false;
+            GUIUtility.hotControl = 0;
+        }
+
+        // Keep a small persistent tab visible when the graph is closed.
         if (!showGraph)
         {
+            IsPointerOverGraphWindow = false;
+            DrawReopenTab();
             return;
         }
 
-        InitialiseGuiStyles();
         ClampWindowToScreen();
 
         windowRect = GUI.Window(
@@ -1045,83 +1137,89 @@ public class FoodPerformanceGraph : MonoBehaviour
         );
     }
 
+    private void DrawReopenTab()
+    {
+        if (!showReopenTab)
+        {
+            return;
+        }
+
+        float width = Mathf.Max(20f, reopenTabWidth);
+        float height = Mathf.Max(20f, reopenTabHeight);
+
+        Rect tabRect = new Rect(
+            8f,
+            Screen.height - height - 8f,
+            width,
+            height
+        );
+
+        // Simple text icon for reliable rendering with Unity's IMGUI font.
+        GUIStyle safeReopenTabStyle =
+            reopenTabStyle != null
+                ? reopenTabStyle
+                : GUI.skin.button;
+
+        if (GUI.Button(tabRect, "FP", safeReopenTabStyle))
+        {
+            showGraph = true;
+            minimized = false;
+
+            // Restore the normal graph size when reopening.
+            windowRect.height = Mathf.Max(
+                minimumWindowHeight,
+                restoredWindowHeight
+            );
+
+            ClampWindowToScreen();
+        }
+    }
+
     private void DrawWindow(int id)
     {
         Event e = Event.current;
+        float width = windowRect.width;
 
-        float width =
-            windowRect.width;
-
-        // Minimise.
+        // The two buttons live in the title bar.
         Rect minimizeRect =
-            new Rect(
-                width - 29f,
-                4f,
-                23f,
-                20f
-            );
+            new Rect(width - 58f, 3f, 25f, 20f);
 
-        if (
-            GUI.Button(
-                minimizeRect,
-                minimized ? "+" : "-"
-            )
-        )
+        if (GUI.Button(minimizeRect, minimized ? "+" : "-"))
         {
             ToggleMinimized();
         }
 
-        // Hide.
         Rect closeRect =
-            new Rect(
-                width - 56f,
-                4f,
-                23f,
-                20f
-            );
+            new Rect(width - 30f, 3f, 25f, 20f);
 
-        if (
-            GUI.Button(
-                closeRect,
-                "x"
-            )
-        )
+        if (GUI.Button(closeRect, "x"))
         {
             showGraph = false;
             IsPointerOverGraphWindow = false;
         }
 
-        // Drag.
+        // Only the title-bar area is draggable. The buttons are outside it.
         GUI.DragWindow(
             new Rect(
                 0f,
                 0f,
-                width - 60f,
-                27f
+                Mathf.Max(0f, width - 62f),
+                24f
             )
         );
 
+        // A minimised window intentionally contains only the Unity title bar.
+        // The minimum height is kept comfortably above Unity's title-bar height
+        // so the title and buttons cannot be vertically clipped.
         if (minimized)
         {
-            GUI.Label(
-                new Rect(
-                    10f,
-                    28f,
-                    width - 75f,
-                    22f
-                ),
-                "Press G to show the graph again.",
-                smallStyle
-            );
-
             return;
         }
 
-        // Readable header.
         Rect headerRect =
             new Rect(
                 8f,
-                29f,
+                27f,
                 width - 16f,
                 50f
             );
@@ -1135,9 +1233,9 @@ public class FoodPerformanceGraph : MonoBehaviour
         GUI.Label(
             new Rect(
                 16f,
-                31f,
+                30f,
                 width - 80f,
-                22f
+                21f
             ),
             "Food Performance",
             headerTitleStyle
@@ -1146,7 +1244,7 @@ public class FoodPerformanceGraph : MonoBehaviour
         GUI.Label(
             new Rect(
                 16f,
-                52f,
+                51f,
                 width - 80f,
                 20f
             ),
@@ -1157,13 +1255,46 @@ public class FoodPerformanceGraph : MonoBehaviour
             headerSubtitleStyle
         );
 
-        // Graph.
+        // Main graph and statistics panel.
+        float contentTop = 82f;
+        float bottomReserved = 102f;
+        float contentHeight =
+            Mathf.Max(
+                200f,
+                windowRect.height - contentTop - bottomReserved
+            );
+
+        // Give the statistics table enough width that labels do not collide
+        // with the Ant/A* value columns.
+        float statsWidth =
+            Mathf.Min(
+                340f,
+                Mathf.Max(
+                    300f,
+                    width * 0.34f
+                )
+            );
+
+        float graphWidth =
+            Mathf.Max(
+                340f,
+                width - statsWidth - 30f
+            );
+
         Rect liveGraphRect =
             new Rect(
                 10f,
-                84f,
-                width - 20f,
-                windowRect.height - 175f
+                contentTop,
+                graphWidth,
+                contentHeight
+            );
+
+        Rect statsRect =
+            new Rect(
+                graphWidth + 20f,
+                contentTop,
+                statsWidth,
+                contentHeight
             );
 
         if (graphTexture != null)
@@ -1177,11 +1308,8 @@ public class FoodPerformanceGraph : MonoBehaviour
         }
 
         // Legend.
-        GUIStyle antStyle =
-            new GUIStyle(labelStyle);
-
-        antStyle.normal.textColor =
-            AntGraphColor;
+        GUIStyle antStyle = new GUIStyle(labelStyle);
+        antStyle.normal.textColor = AntGraphColor;
 
         GUI.Label(
             new Rect(
@@ -1194,11 +1322,8 @@ public class FoodPerformanceGraph : MonoBehaviour
             antStyle
         );
 
-        GUIStyle aStarStyle =
-            new GUIStyle(labelStyle);
-
-        aStarStyle.normal.textColor =
-            AStarGraphColor;
+        GUIStyle aStarStyle = new GUIStyle(labelStyle);
+        aStarStyle.normal.textColor = AStarGraphColor;
 
         GUI.Label(
             new Rect(
@@ -1211,7 +1336,8 @@ public class FoodPerformanceGraph : MonoBehaviour
             aStarStyle
         );
 
-        // Current values.
+        DrawStatisticsPanel(statsRect);
+
         Sample latest =
             samples.Count > 0
                 ? samples[samples.Count - 1]
@@ -1230,7 +1356,7 @@ public class FoodPerformanceGraph : MonoBehaviour
         GUI.Label(
             new Rect(
                 12f,
-                windowRect.height - 84f,
+                windowRect.height - 94f,
                 width - 24f,
                 20f
             ),
@@ -1241,11 +1367,10 @@ public class FoodPerformanceGraph : MonoBehaviour
             labelStyle
         );
 
-        // Run information.
         GUI.Label(
             new Rect(
                 12f,
-                windowRect.height - 63f,
+                windowRect.height - 73f,
                 width - 24f,
                 18f
             ),
@@ -1260,69 +1385,48 @@ public class FoodPerformanceGraph : MonoBehaviour
             smallStyle
         );
 
-        // Metric selector.
-        float buttonWidth = 118f;
         float buttonY =
-            windowRect.height - 35f;
+            windowRect.height - 48f;
 
-        if (
-            GUI.Button(
-                new Rect(
-                    10f,
-                    buttonY,
-                    buttonWidth,
-                    22f
-                ),
-                "Metric: " +
-                GetMetricShortName(),
-                buttonStyle
-            )
-        )
+        GUIStyle safeButtonStyle =
+            buttonStyle != null
+                ? buttonStyle
+                : GUI.skin.button;
+
+        if (GUI.Button(
+            new Rect(10f, buttonY, 118f, 22f),
+            "Metric: " + GetMetricShortName(),
+            safeButtonStyle
+        ))
         {
             CycleMetric();
         }
 
-        if (
-            GUI.Button(
-                new Rect(
-                    134f,
-                    buttonY,
-                    100f,
-                    22f
-                ),
-                "Reset Data",
-                buttonStyle
-            )
-        )
+        if (GUI.Button(
+            new Rect(134f, buttonY, 100f, 22f),
+            "Reset Data",
+            safeButtonStyle
+        ))
         {
             ResetGraph();
         }
 
-        if (
-            GUI.Button(
-                new Rect(
-                    240f,
-                    buttonY,
-                    100f,
-                    22f
-                ),
-                "Export CSV",
-                buttonStyle
-            )
-        )
+        if (GUI.Button(
+            new Rect(240f, buttonY, 100f, 22f),
+            "Export CSV",
+            safeButtonStyle
+        ))
         {
             ExportCsv();
         }
 
-        if (
-            !string.IsNullOrEmpty(exportStatus)
-        )
+        if (!string.IsNullOrEmpty(exportStatus))
         {
             GUI.Label(
                 new Rect(
                     350f,
                     buttonY,
-                    width - 430f,
+                    Mathf.Max(100f, width - 430f),
                     22f
                 ),
                 exportStatus,
@@ -1345,10 +1449,453 @@ public class FoodPerformanceGraph : MonoBehaviour
             smallStyle
         );
 
-        HandleResize(
-            resizeRect,
-            e
+        HandleResize(resizeRect, e);
+    }
+
+    private void DrawStatisticsPanel(Rect rect)
+    {
+        GUI.Box(rect, GUIContent.none);
+
+        const float outerPadding = 8f;
+        const float titleHeight = 24f;
+        const float noteHeight = 22f;
+        const float columnHeaderHeight = 24f;
+        const float rowHeight = 22f;
+
+        Rect inner = new Rect(
+            rect.x + outerPadding,
+            rect.y + outerPadding,
+            rect.width - outerPadding * 2f,
+            rect.height - outerPadding * 2f
         );
+
+        GUI.Label(
+            new Rect(
+                inner.x,
+                inner.y,
+                inner.width,
+                titleHeight
+            ),
+            "Statistics",
+            statsHeaderStyle
+        );
+
+        GUI.Label(
+            new Rect(
+                inner.x,
+                inner.y + titleHeight - 1f,
+                inner.width,
+                noteHeight
+            ),
+            "Key summary measures for efficiency and consistency.",
+            statsNoteStyle
+        );
+
+        float tableTop =
+            inner.y +
+            titleHeight +
+            noteHeight +
+            4f;
+
+        // Fixed columns keep every value aligned and prevent long labels
+        // from colliding with the Ant and A* columns.
+        float measureWidth = inner.width - 142f;
+        float valueWidth = 67f;
+        float gap = 4f;
+
+        float antX = inner.x + measureWidth + gap;
+        float aStarX = antX + valueWidth + gap;
+
+        DrawStatisticsCell(
+            new Rect(inner.x, tableTop, measureWidth, columnHeaderHeight),
+            "Measure",
+            statsLabelStyle,
+            false
+        );
+
+        GUIStyle antHeader = new GUIStyle(statsValueStyle);
+        antHeader.normal.textColor = AntGraphColor;
+        antHeader.fontStyle = FontStyle.Bold;
+        antHeader.alignment = TextAnchor.MiddleCenter;
+
+        GUI.Label(
+            new Rect(antX, tableTop, valueWidth, columnHeaderHeight),
+            "Ant",
+            antHeader
+        );
+
+        GUIStyle aStarHeader = new GUIStyle(statsValueStyle);
+        aStarHeader.normal.textColor = AStarGraphColor;
+        aStarHeader.fontStyle = FontStyle.Bold;
+        aStarHeader.alignment = TextAnchor.MiddleCenter;
+
+        GUI.Label(
+            new Rect(aStarX, tableTop, valueWidth, columnHeaderHeight),
+            "A*",
+            aStarHeader
+        );
+
+        if (samples.Count == 0)
+        {
+            GUI.Label(
+                new Rect(
+                    inner.x,
+                    tableTop + columnHeaderHeight + 8f,
+                    inner.width,
+                    55f
+                ),
+                "Statistics will populate after the first measurement interval.",
+                statsNoteStyle
+            );
+            return;
+        }
+
+        float y = tableTop + columnHeaderHeight;
+
+        DrawStatisticRow(
+            rect, ref y, measureWidth, antX, aStarX, valueWidth, rowHeight,
+            "Final cumulative / agent",
+            GetFinalCumulative(true),
+            GetFinalCumulative(false),
+            "F4"
+        );
+
+        DrawStatisticRow(
+            rect, ref y, measureWidth, antX, aStarX, valueWidth, rowHeight,
+            "Mean cumulative / agent",
+            GetMeanCumulative(true),
+            GetMeanCumulative(false),
+            "F4"
+        );
+
+        DrawStatisticRow(
+            rect, ref y, measureWidth, antX, aStarX, valueWidth, rowHeight,
+            "Mean return rate / agent / s",
+            GetMeanRate(true),
+            GetMeanRate(false),
+            "F4"
+        );
+
+        DrawStatisticRow(
+            rect, ref y, measureWidth, antX, aStarX, valueWidth, rowHeight,
+            "Mean smoothed rate / agent / s",
+            GetMeanSmoothedRate(true),
+            GetMeanSmoothedRate(false),
+            "F4"
+        );
+
+        DrawStatisticRow(
+            rect, ref y, measureWidth, antX, aStarX, valueWidth, rowHeight,
+            "Rate variability (SD)",
+            GetRateStandardDeviation(true),
+            GetRateStandardDeviation(false),
+            "F4"
+        );
+
+        DrawStatisticRow(
+            rect, ref y, measureWidth, antX, aStarX, valueWidth, rowHeight,
+            "Rate variability (CV %)",
+            GetRateCoefficientOfVariation(true),
+            GetRateCoefficientOfVariation(false),
+            "F1"
+        );
+
+        DrawStatisticRow(
+            rect, ref y, measureWidth, antX, aStarX, valueWidth, rowHeight,
+            "Peak return rate / agent / s",
+            GetPeakRate(true),
+            GetPeakRate(false),
+            "F4"
+        );
+
+        DrawStatisticRow(
+            rect, ref y, measureWidth, antX, aStarX, valueWidth, rowHeight,
+            "Total food returned",
+            GetTotalFoodGained(true),
+            GetTotalFoodGained(false),
+            "F0"
+        );
+
+        DrawStatisticRow(
+            rect, ref y, measureWidth, antX, aStarX, valueWidth, rowHeight,
+            "First return (s)",
+            GetFirstFoodReturnTime(true),
+            GetFirstFoodReturnTime(false),
+            "F1",
+            true
+        );
+    }
+
+    private void DrawStatisticsCell(
+        Rect rect,
+        string text,
+        GUIStyle style,
+        bool centered
+    )
+    {
+        GUIStyle drawStyle = new GUIStyle(style);
+
+        if (centered)
+        {
+            drawStyle.alignment = TextAnchor.MiddleCenter;
+        }
+
+        GUI.Label(
+            rect,
+            text,
+            drawStyle
+        );
+    }
+
+    private void DrawStatisticRow(
+        Rect rect,
+        ref float y,
+        float measureWidth,
+        float antX,
+        float aStarX,
+        float valueWidth,
+        float rowHeight,
+        string label,
+        float antValue,
+        float aStarValue,
+        string format,
+        bool secondsValue = false
+    )
+    {
+        // Subtle alternating rows make the table much easier to read.
+        Color previousColor = GUI.color;
+
+        GUI.color = new Color(1f, 1f, 1f, 0.035f);
+        GUI.Box(
+            new Rect(
+                rect.x + 8f,
+                y,
+                rect.width - 16f,
+                rowHeight
+            ),
+            GUIContent.none
+        );
+
+        GUI.color = previousColor;
+
+        GUI.Label(
+            new Rect(
+                rect.x + 12f,
+                y,
+                measureWidth - 4f,
+                rowHeight
+            ),
+            label,
+            statsLabelStyle
+        );
+
+        GUI.Label(
+            new Rect(
+                antX,
+                y,
+                valueWidth,
+                rowHeight
+            ),
+            FormatStatisticValue(antValue, format, secondsValue),
+            statsValueStyle
+        );
+
+        GUI.Label(
+            new Rect(
+                aStarX,
+                y,
+                valueWidth,
+                rowHeight
+            ),
+            FormatStatisticValue(aStarValue, format, secondsValue),
+            statsValueStyle
+        );
+
+        y += rowHeight;
+    }
+
+    private string FormatStatisticValue(
+        float value,
+        string format,
+        bool secondsValue
+    )
+    {
+        if (float.IsNaN(value) || float.IsInfinity(value))
+        {
+            return "N/A";
+        }
+
+        if (secondsValue && value < 0f)
+        {
+            return "N/A";
+        }
+
+        if (format == "F0")
+        {
+            return Mathf.RoundToInt(value).ToString();
+        }
+
+        return value.ToString(
+            format,
+            CultureInfo.InvariantCulture
+        );
+    }
+
+    private float GetFinalCumulative(bool ant)
+    {
+        if (samples.Count == 0)
+        {
+            return 0f;
+        }
+
+        Sample latest = samples[samples.Count - 1];
+
+        return ant
+            ? latest.antCumulativeFoodPerAgent
+            : latest.aStarCumulativeFoodPerAgent;
+    }
+
+    private float GetMeanCumulative(bool ant)
+    {
+        if (samples.Count == 0)
+        {
+            return 0f;
+        }
+
+        float total = 0f;
+
+        for (int i = 0; i < samples.Count; i++)
+        {
+            total += ant
+                ? samples[i].antCumulativeFoodPerAgent
+                : samples[i].aStarCumulativeFoodPerAgent;
+        }
+
+        return total / samples.Count;
+    }
+
+    private float GetMeanRate(bool ant)
+    {
+        if (samples.Count == 0)
+        {
+            return 0f;
+        }
+
+        float total = 0f;
+
+        for (int i = 0; i < samples.Count; i++)
+        {
+            total += ant
+                ? samples[i].antFoodPerAgentPerSecond
+                : samples[i].aStarFoodPerAgentPerSecond;
+        }
+
+        return total / samples.Count;
+    }
+
+    private float GetMeanSmoothedRate(bool ant)
+    {
+        if (samples.Count == 0)
+        {
+            return 0f;
+        }
+
+        float total = 0f;
+
+        for (int i = 0; i < samples.Count; i++)
+        {
+            total += ant
+                ? samples[i].antSmoothedFoodPerAgentPerSecond
+                : samples[i].aStarSmoothedFoodPerAgentPerSecond;
+        }
+
+        return total / samples.Count;
+    }
+
+    private float GetRateStandardDeviation(bool ant)
+    {
+        if (samples.Count == 0)
+        {
+            return 0f;
+        }
+
+        float mean = GetMeanRate(ant);
+        float squaredDifferenceTotal = 0f;
+
+        for (int i = 0; i < samples.Count; i++)
+        {
+            float value = ant
+                ? samples[i].antFoodPerAgentPerSecond
+                : samples[i].aStarFoodPerAgentPerSecond;
+
+            float difference = value - mean;
+            squaredDifferenceTotal += difference * difference;
+        }
+
+        return Mathf.Sqrt(
+            squaredDifferenceTotal / samples.Count
+        );
+    }
+
+    private float GetRateCoefficientOfVariation(bool ant)
+    {
+        float mean = GetMeanRate(ant);
+
+        if (mean <= 0.000001f)
+        {
+            return float.NaN;
+        }
+
+        return (GetRateStandardDeviation(ant) / mean) * 100f;
+    }
+
+    private float GetPeakRate(bool ant)
+    {
+        if (samples.Count == 0)
+        {
+            return 0f;
+        }
+
+        float peak = 0f;
+
+        for (int i = 0; i < samples.Count; i++)
+        {
+            peak = Mathf.Max(
+                peak,
+                ant
+                    ? samples[i].antFoodPerAgentPerSecond
+                    : samples[i].aStarFoodPerAgentPerSecond
+            );
+        }
+
+        return peak;
+    }
+
+    private float GetTotalFoodGained(bool ant)
+    {
+        return ant
+            ? Mathf.Max(0, antColony.numFoodCollected - runStartAntFood)
+            : Mathf.Max(0, antColony.numAStarFoodCollected - runStartAStarFood);
+    }
+
+    private float GetFirstFoodReturnTime(bool ant)
+    {
+        for (int i = 0; i < samples.Count; i++)
+        {
+            if (ant)
+            {
+                if (samples[i].antFoodGainedThisStep > 0)
+                {
+                    return samples[i].timeSeconds;
+                }
+            }
+            else if (samples[i].aStarFoodGainedThisStep > 0)
+            {
+                return samples[i].timeSeconds;
+            }
+        }
+
+        return float.NaN;
     }
 
     private void CycleMetric()
@@ -1376,7 +1923,10 @@ public class FoodPerformanceGraph : MonoBehaviour
                 );
 
             windowRect.height =
-                minimizedWindowHeight;
+                Mathf.Max(
+                    40f,
+                    minimizedWindowHeight
+                );
 
             minimized = true;
         }
@@ -1517,7 +2067,7 @@ public class FoodPerformanceGraph : MonoBehaviour
 
         float visibleHeight =
             minimized
-                ? minimizedWindowHeight
+                ? Mathf.Max(40f, minimizedWindowHeight)
                 : windowRect.height;
 
         windowRect.y =
@@ -1536,16 +2086,12 @@ public class FoodPerformanceGraph : MonoBehaviour
     {
         if (samples.Count == 0)
         {
-            exportStatus =
-                "No samples recorded.";
-
+            exportStatus = "No samples recorded.";
             return;
         }
 
         string timestamp =
-            DateTime.Now.ToString(
-                "yyyyMMdd_HHmmss"
-            );
+            DateTime.Now.ToString("yyyyMMdd_HHmmss");
 
         string path =
             System.IO.Path.Combine(
@@ -1556,182 +2102,221 @@ public class FoodPerformanceGraph : MonoBehaviour
                 ".csv"
             );
 
+        // Excel-friendly CSV layout:
+        // A:G = chart-ready time-series data.
+        // H    = spacer column.
+        // I:K = summary statistics table.
+        // This keeps the first three columns immediately usable for a line graph.
         System.Text.StringBuilder csv =
             new System.Text.StringBuilder();
 
-        if (!exportFullCsv)
-        {
-            csv.AppendLine(
-                "time_step," +
-                "time_seconds," +
-                "ant_food_gained_this_step," +
-                "astar_food_gained_this_step," +
-                "ant_cumulative_food_per_agent," +
-                "astar_cumulative_food_per_agent," +
-                "ant_smoothed_food_per_agent_per_second," +
-                "astar_smoothed_food_per_agent_per_second"
-            );
-        }
-        else
-        {
-            csv.AppendLine(
-                "time_step," +
-                "time_seconds," +
-                "ant_total_food," +
-                "astar_total_food," +
-                "ant_food_gained_this_step," +
-                "astar_food_gained_this_step," +
-                "ant_agent_count," +
-                "astar_agent_count," +
-                "ant_food_per_agent_this_step," +
-                "astar_food_per_agent_this_step," +
-                "ant_food_per_agent_per_second," +
-                "astar_food_per_agent_per_second," +
-                "ant_cumulative_food_per_agent," +
-                "astar_cumulative_food_per_agent," +
-                "ant_smoothed_food_per_agent_per_second," +
-                "astar_smoothed_food_per_agent_per_second"
-            );
-        }
+        csv.AppendLine(
+            "time_seconds," +
+            "ant_cumulative_food_per_agent," +
+            "astar_cumulative_food_per_agent," +
+            "ant_food_gained_this_step," +
+            "astar_food_gained_this_step," +
+            "ant_smoothed_food_per_agent_per_second," +
+            "astar_smoothed_food_per_agent_per_second," +
+            "," +
+            "STATISTICS SUMMARY,,"
+        );
 
-        foreach (Sample sample in samples)
+        string[,] stats = BuildExportStatistics();
+
+        for (int i = 0; i < samples.Count; i++)
         {
-            if (!exportFullCsv)
+            Sample sample = samples[i];
+
+            csv.Append(
+                FormatNumber(sample.timeSeconds) +
+                "," +
+                FormatNumber(sample.antCumulativeFoodPerAgent) +
+                "," +
+                FormatNumber(sample.aStarCumulativeFoodPerAgent) +
+                "," +
+                sample.antFoodGainedThisStep +
+                "," +
+                sample.aStarFoodGainedThisStep +
+                "," +
+                FormatNumber(sample.antSmoothedFoodPerAgentPerSecond) +
+                "," +
+                FormatNumber(sample.aStarSmoothedFoodPerAgentPerSecond) +
+                ","
+            );
+
+            int statsRow = i;
+
+            if (statsRow < stats.GetLength(0))
             {
-                csv.AppendLine(
-                    sample.timeStep +
+                csv.Append(
+                    CsvEscape(stats[statsRow, 0]) +
                     "," +
-                    FormatNumber(sample.timeSeconds) +
+                    CsvEscape(stats[statsRow, 1]) +
                     "," +
-                    sample.antFoodGainedThisStep +
-                    "," +
-                    sample.aStarFoodGainedThisStep +
-                    "," +
-                    FormatNumber(
-                        sample.antCumulativeFoodPerAgent
-                    ) +
-                    "," +
-                    FormatNumber(
-                        sample.aStarCumulativeFoodPerAgent
-                    ) +
-                    "," +
-                    FormatNumber(
-                        sample.antSmoothedFoodPerAgentPerSecond
-                    ) +
-                    "," +
-                    FormatNumber(
-                        sample.aStarSmoothedFoodPerAgentPerSecond
-                    )
+                    CsvEscape(stats[statsRow, 2])
                 );
             }
             else
             {
-                csv.AppendLine(
-                    sample.timeStep +
-                    "," +
-                    FormatNumber(sample.timeSeconds) +
-                    "," +
-                    sample.antTotalFood +
-                    "," +
-                    sample.aStarTotalFood +
-                    "," +
-                    sample.antFoodGainedThisStep +
-                    "," +
-                    sample.aStarFoodGainedThisStep +
-                    "," +
-                    sample.antAgentCount +
-                    "," +
-                    sample.aStarAgentCount +
-                    "," +
-                    FormatNumber(
-                        sample.antFoodPerAgentThisStep
-                    ) +
-                    "," +
-                    FormatNumber(
-                        sample.aStarFoodPerAgentThisStep
-                    ) +
-                    "," +
-                    FormatNumber(
-                        sample.antFoodPerAgentPerSecond
-                    ) +
-                    "," +
-                    FormatNumber(
-                        sample.aStarFoodPerAgentPerSecond
-                    ) +
-                    "," +
-                    FormatNumber(
-                        sample.antCumulativeFoodPerAgent
-                    ) +
-                    "," +
-                    FormatNumber(
-                        sample.aStarCumulativeFoodPerAgent
-                    ) +
-                    "," +
-                    FormatNumber(
-                        sample.antSmoothedFoodPerAgentPerSecond
-                    ) +
-                    "," +
-                    FormatNumber(
-                        sample.aStarSmoothedFoodPerAgentPerSecond
-                    )
-                );
+                csv.Append(",,");
             }
+
+            csv.AppendLine();
         }
 
         try
         {
-            System.IO.File.WriteAllText(
-                path,
-                csv.ToString()
+            // UTF-8 BOM helps Excel recognise the CSV correctly on Windows.
+            byte[] utf8Bom =
+            {
+                0xEF,
+                0xBB,
+                0xBF
+            };
+
+            byte[] csvBytes =
+                System.Text.Encoding.UTF8.GetBytes(
+                    csv.ToString()
+                );
+
+            byte[] output =
+                new byte[utf8Bom.Length + csvBytes.Length];
+
+            System.Buffer.BlockCopy(
+                utf8Bom,
+                0,
+                output,
+                0,
+                utf8Bom.Length
             );
 
-            if (exportPng)
-            {
-                string pngPath =
-                    System.IO.Path.Combine(
-                        Application.persistentDataPath,
-                        exportFilePrefix +
-                        "_" +
-                        timestamp +
-                        ".png"
-                    );
+            System.Buffer.BlockCopy(
+                csvBytes,
+                0,
+                output,
+                utf8Bom.Length,
+                csvBytes.Length
+            );
 
-                System.IO.File.WriteAllBytes(
-                    pngPath,
-                    graphTexture.EncodeToPNG()
-                );
+            System.IO.File.WriteAllBytes(
+                path,
+                output
+            );
 
-                exportStatus =
-                    "CSV + PNG exported.";
+            exportStatus = "CSV + statistics exported.";
 
-                Debug.Log(
-                    "Food performance CSV exported to:\n" +
-                    path +
-                    "\n\nPNG exported to:\n" +
-                    pngPath
-                );
-            }
-            else
-            {
-                exportStatus =
-                    "CSV exported.";
-
-                Debug.Log(
-                    "Food performance CSV exported to:\n" +
-                    path
-                );
-            }
+            Debug.Log(
+                "Food performance CSV exported to:\n" +
+                path
+            );
         }
         catch (Exception exception)
         {
-            exportStatus =
-                "Export failed.";
+            exportStatus = "Export failed.";
 
             Debug.LogError(
-                "FoodPerformanceGraph export failed:\n" +
+                "FoodPerformanceGraph CSV export failed:\n" +
                 exception
             );
         }
+    }
+
+    private string[,] BuildExportStatistics()
+    {
+        // Row 0 is the table header. Rows 1-9 are the nine summary measures.
+        string[,] table = new string[10, 3];
+
+        table[0, 0] = "Statistic";
+        table[0, 1] = "Ant";
+        table[0, 2] = "A*";
+
+        table[1, 0] = "Final cumulative / agent";
+        table[1, 1] = FormatStatisticCsv(GetFinalCumulative(true), "F4", false);
+        table[1, 2] = FormatStatisticCsv(GetFinalCumulative(false), "F4", false);
+
+        table[2, 0] = "Mean cumulative / agent";
+        table[2, 1] = FormatStatisticCsv(GetMeanCumulative(true), "F4", false);
+        table[2, 2] = FormatStatisticCsv(GetMeanCumulative(false), "F4", false);
+
+        table[3, 0] = "Mean return rate / agent / s";
+        table[3, 1] = FormatStatisticCsv(GetMeanRate(true), "F4", false);
+        table[3, 2] = FormatStatisticCsv(GetMeanRate(false), "F4", false);
+
+        table[4, 0] = "Mean smoothed rate / agent / s";
+        table[4, 1] = FormatStatisticCsv(GetMeanSmoothedRate(true), "F4", false);
+        table[4, 2] = FormatStatisticCsv(GetMeanSmoothedRate(false), "F4", false);
+
+        table[5, 0] = "Rate variability (SD)";
+        table[5, 1] = FormatStatisticCsv(GetRateStandardDeviation(true), "F4", false);
+        table[5, 2] = FormatStatisticCsv(GetRateStandardDeviation(false), "F4", false);
+
+        table[6, 0] = "Rate variability (CV %)";
+        table[6, 1] = FormatStatisticCsv(GetRateCoefficientOfVariation(true), "F1", false);
+        table[6, 2] = FormatStatisticCsv(GetRateCoefficientOfVariation(false), "F1", false);
+
+        table[7, 0] = "Peak return rate / agent / s";
+        table[7, 1] = FormatStatisticCsv(GetPeakRate(true), "F4", false);
+        table[7, 2] = FormatStatisticCsv(GetPeakRate(false), "F4", false);
+
+        table[8, 0] = "Total food returned";
+        table[8, 1] = FormatStatisticCsv(GetTotalFoodGained(true), "F0", false);
+        table[8, 2] = FormatStatisticCsv(GetTotalFoodGained(false), "F0", false);
+
+        table[9, 0] = "First return (s)";
+        table[9, 1] = FormatStatisticCsv(GetFirstFoodReturnTime(true), "F1", true);
+        table[9, 2] = FormatStatisticCsv(GetFirstFoodReturnTime(false), "F1", true);
+
+        return table;
+    }
+
+    private string FormatStatisticCsv(
+        float value,
+        string format,
+        bool secondsValue
+    )
+    {
+        if (float.IsNaN(value) || float.IsInfinity(value))
+        {
+            return "N/A";
+        }
+
+        if (secondsValue && value < 0f)
+        {
+            return "N/A";
+        }
+
+        if (format == "F0")
+        {
+            return Mathf.RoundToInt(value).ToString();
+        }
+
+        return value.ToString(
+            format,
+            CultureInfo.InvariantCulture
+        );
+    }
+
+    private string CsvEscape(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return "";
+        }
+
+        if (
+            value.IndexOf(',') >= 0 ||
+            value.IndexOf('"') >= 0 ||
+            value.IndexOf('\n') >= 0 ||
+            value.IndexOf('\r') >= 0
+        )
+        {
+            return "\"" +
+                   value.Replace("\"", "\"\"") +
+                   "\"";
+        }
+
+        return value;
     }
 
     private string FormatNumber(float value)
