@@ -100,6 +100,8 @@ public class AStarAgent2D : MonoBehaviour
 
     private AntColony colony;
 
+    private Storm storm;
+
 
     private Vector2 homePosition;
 
@@ -174,6 +176,8 @@ public class AStarAgent2D : MonoBehaviour
 
         this.colony =
             colony;
+
+        storm = (Storm)GameObject.FindWithTag("Storm").GetComponent("Storm");
 
 
         if (
@@ -927,16 +931,17 @@ public class AStarAgent2D : MonoBehaviour
 
     private float GetMaxSpeed()
     {
+        float stormMult = storm.GetSpeedReduction(transform.position);
         if (
             movementSettings != null
         )
         {
             return
-                movementSettings.maxSpeed;
+                movementSettings.maxSpeed*stormMult;
         }
 
 
-        return speed;
+        return speed*stormMult;
     }
 
 

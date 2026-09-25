@@ -275,6 +275,14 @@ public class Storm : MonoBehaviour
     // TRAVERSAL COST
     // ==================================================
 
+    
+    public float GetSpeedReduction(Vector2 worldPosition)
+    {
+		float stormCost = Mathf.Max(1f,GetTraversalCost(worldPosition)) -1f;
+		float stormMult = stormCost/(stormCost+ maxCostMultiplier);
+        return stormMult;
+    }
+
     public float GetTraversalCost(Vector2 worldPosition)
     {
         float intensity =

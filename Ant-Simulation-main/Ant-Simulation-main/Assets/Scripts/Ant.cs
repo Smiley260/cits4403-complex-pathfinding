@@ -11,6 +11,7 @@ public class Ant : MonoBehaviour
 	public LayerMask foodMask;
 	public LayerMask homeMask;
 	public LayerMask collisionMask;
+	public Storm storm;
 
 
 	public Transform antennaLeft;
@@ -55,6 +56,7 @@ public class Ant : MonoBehaviour
 	bool turningAround;
 	Vector2 turnAroundForce;
 	float turnAroundEndTime;
+	float actualSpeed;
 
 	float leftHomeTime;
 	float leftFoodTime;
@@ -84,10 +86,12 @@ public class Ant : MonoBehaviour
 		transform.eulerAngles = Vector3.forward * Random.value * 360;
 		currentForwardDir = transform.right;
 		currentPosition = transform.position;
-		currentVelocity = currentForwardDir * settings.maxSpeed;
+		currentVelocity = currentForwardDir * actualSpeed;
 
 		foodColliders = new Collider2D[1];
 		homePos = transform.position;
+
+		storm = (Storm)GameObject.FindWithTag("Storm").GetComponent("Storm");
 
 		const int maxPerceivedPheromones = 1024;
 		pheromoneEntries = new PerceptionMap.Entry[maxPerceivedPheromones];
@@ -133,6 +137,9 @@ public class Ant : MonoBehaviour
 		// immediately try to push it back outside.
 		RecoverFromWall();
 
+		float stormMult = storm.GetSpeedReduction(currentPosition);
+		actualSpeed = settings.maxSpeed * (1-stormMult);
+
 		Vector2 steerForce = randomSteerForce + pheromoneSteerForce + obstacleAvoidForce;
 
 		if (turningAround)
@@ -145,11 +152,12 @@ public class Ant : MonoBehaviour
 			}
 		}
 
-		Vector2 desiredVelocity = steerForce.normalized * settings.maxSpeed;
+		Vector2 desiredVelocity = steerForce.normalized * actualSpeed;
 		SteerTowards(desiredVelocity);
 
 		currentForwardDir = currentVelocity.normalized;
 
+		
 		float moveDst = currentVelocity.magnitude * Time.deltaTime;
 		Vector2 desiredPos = currentPosition + currentVelocity * Time.deltaTime;
 
@@ -251,7 +259,7 @@ public class Ant : MonoBehaviour
 				currentVelocity =
 					currentForwardDir *
 					Mathf.Max(
-						settings.maxSpeed * 0.5f,
+						actualSpeed * 0.5f,
 						0.01f
 					);
 
@@ -358,7 +366,7 @@ public class Ant : MonoBehaviour
 		currentVelocity =
 			Vector2.ClampMagnitude(
 				currentVelocity,
-				settings.maxSpeed
+				actualSpeed
 			);
 	}
 

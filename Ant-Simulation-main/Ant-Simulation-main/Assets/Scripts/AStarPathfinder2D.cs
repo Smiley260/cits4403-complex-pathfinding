@@ -1,25 +1,19 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-
 public class AStarPathfinder2D : MonoBehaviour
 {
     [Header("References")]
-
     public AStarGrid2D grid;
-
     public Storm storm;
 
-
     [Header("Queued Requests")]
-
     [Tooltip(
         "Maximum queued requests processed per frame. " +
         "AStarAgent2D currently uses immediate searches instead."
     )]
     [Min(1)]
     public int maxPathRequestsPerFrame = 8;
-
 
     [Tooltip(
         "Maximum real time spent processing queued requests per frame. " +
@@ -28,19 +22,14 @@ public class AStarPathfinder2D : MonoBehaviour
     [Min(0.1f)]
     public float maxPathfindingMillisecondsPerFrame = 4f;
 
-
     // ============================================================
     // PATH REQUEST
     // ============================================================
-
     private struct PathRequest
     {
         public Vector2 startPosition;
-
         public Vector2 targetPosition;
-
         public Action<Vector2[]> callback;
-
 
         public PathRequest(
             Vector2 startPosition,
@@ -51,100 +40,61 @@ public class AStarPathfinder2D : MonoBehaviour
             this.startPosition =
                 startPosition;
 
-
             this.targetPosition =
                 targetPosition;
-
 
             this.callback =
                 callback;
         }
     }
 
-
     // ============================================================
     // SEARCH RECORD
     // ============================================================
-
     private class SearchRecord :
         IHeapItem<SearchRecord>
     {
         public Node2D node;
-
         public int gCost =
             int.MaxValue;
-
         public int hCost;
-
         public Node2D parent;
-
         private int heapIndex;
 
-
-        public int fCost
-        {
-            get
-            {
-                if (
-                    gCost ==
-                    int.MaxValue
-                )
+        public int fCost{
+            get{
+                if (gCost == int.MaxValue)
                 {
                     return int.MaxValue;
                 }
-
-
                 return
-                    gCost +
-                    hCost;
+                    gCost + hCost;
             }
         }
-
 
         public int HeapIndex
         {
-            get
-            {
+            get{
                 return heapIndex;
             }
-
-            set
-            {
-                heapIndex =
-                    value;
+            set{
+                heapIndex = value;
             }
         }
 
-
-        public SearchRecord(
-            Node2D node
-        )
+        public SearchRecord( Node2D node )
         {
-            this.node =
-                node;
+            this.node = node;
         }
 
-
-        public int CompareTo(
-            SearchRecord other
-        )
+        public int CompareTo(SearchRecord other)
         {
-            int comparison =
-                fCost.CompareTo(
-                    other.fCost
-                );
+            int comparison = fCost.CompareTo(other.fCost);
 
-
-            if (
-                comparison == 0
-            )
+            if (comparison == 0)
             {
-                comparison =
-                    hCost.CompareTo(
-                        other.hCost
-                    );
+                comparison = hCost.CompareTo(other.hCost);
             }
-
 
             // Heap expects larger comparison values to have
             // higher priority.
@@ -154,15 +104,11 @@ public class AStarPathfinder2D : MonoBehaviour
         }
     }
 
-
-    private readonly Queue<PathRequest> pathRequests =
-        new Queue<PathRequest>();
-
+    private readonly Queue<PathRequest> pathRequests = new Queue<PathRequest>();
 
     // ============================================================
     // READY
     // ============================================================
-
     public bool IsReady()
     {
         return
@@ -170,36 +116,26 @@ public class AStarPathfinder2D : MonoBehaviour
             grid.IsGridCreated();
     }
 
-
     // ============================================================
     // UPDATE
     // ============================================================
-
     private void Update()
     {
-        if (
-            !IsReady() ||
-            pathRequests.Count == 0
-        )
-        {
+        if (!IsReady() || pathRequests.Count == 0){
             return;
         }
-
 
         ProcessQueuedPathRequests();
     }
 
-
     // ============================================================
     // QUEUED REQUEST API
     // ============================================================
-
     public void RequestPath(
         Vector2 startPosition,
         Vector2 targetPosition,
         Action<Vector2[]> callback
-    )
-    {
+    ){
         pathRequests.Enqueue(
             new PathRequest(
                 startPosition,
@@ -209,72 +145,33 @@ public class AStarPathfinder2D : MonoBehaviour
         );
     }
 
+    private void ProcessQueuedPathRequests(){
+        float frameStart = Time.realtimeSinceStartup;
 
-    private void ProcessQueuedPathRequests()
-    {
-        float frameStart =
-            Time.realtimeSinceStartup;
+        int processed = 0;
 
-
-        int processed =
-            0;
-
-
-        while (
-            pathRequests.Count > 0
-        )
-        {
-            if (
-                processed >=
-                maxPathRequestsPerFrame
-            )
-            {
+        while (pathRequests.Count > 0){
+            if (processed >= maxPathRequestsPerFrame){
                 break;
             }
 
+            if (processed > 0){
+                float elapsedMilliseconds = (Time.realtimeSinceStartup - frameStart) *1000f;
 
-            if (
-                processed > 0
-            )
-            {
-                float elapsedMilliseconds =
-                    (
-                        Time.realtimeSinceStartup -
-                        frameStart
-                    ) *
-                    1000f;
-
-
-                if (
-                    elapsedMilliseconds >=
-                    maxPathfindingMillisecondsPerFrame
-                )
-                {
+                if (elapsedMilliseconds >=maxPathfindingMillisecondsPerFrame){
                     break;
                 }
             }
 
+            PathRequest request = pathRequests.Dequeue();
 
-            PathRequest request =
-                pathRequests.Dequeue();
+            Vector2[] path = FindPathInternal(request.startPosition,request.targetPosition);
 
-
-            Vector2[] path =
-                FindPathInternal(
-                    request.startPosition,
-                    request.targetPosition
-                );
-
-
-            request.callback?.Invoke(
-                path
-            );
-
+            request.callback?.Invoke(path);
 
             processed++;
         }
     }
-
 
     // ============================================================
     // IMMEDIATE PATH
@@ -287,57 +184,27 @@ public class AStarPathfinder2D : MonoBehaviour
     // The grid is shared.
     // The search state is NOT shared.
     //
-    public Vector2[] FindPathImmediate(
-        Vector2 startPosition,
-        Vector2 targetPosition
-    )
-    {
-        if (
-            !IsReady()
-        )
-        {
+    public Vector2[] FindPathImmediate(Vector2 startPosition, Vector2 targetPosition){
+
+        if (!IsReady()){
             return null;
         }
 
-
-        return
-            FindPathInternal(
-                startPosition,
-                targetPosition
-            );
+        return FindPathInternal(startPosition,targetPosition);
     }
-
 
     // Compatibility method.
-    public Vector2[] FindPath(
-        Vector2 startPosition,
-        Vector2 targetPosition
-    )
-    {
-        return
-            FindPathImmediate(
-                startPosition,
-                targetPosition
-            );
+    public Vector2[] FindPath(Vector2 startPosition,Vector2 targetPosition){
+        return FindPathImmediate(startPosition,targetPosition);
     }
-
 
     // ============================================================
     // A*
     // ============================================================
-
-    private Vector2[] FindPathInternal(
-        Vector2 startPosition,
-        Vector2 targetPosition
-    )
-    {
-        if (
-            !IsReady()
-        )
-        {
+    private Vector2[] FindPathInternal(Vector2 startPosition, Vector2 targetPosition){
+        if (!IsReady()){
             return null;
         }
-
 
         // --------------------------------------------------------
         // Start and target are converted independently.
@@ -345,54 +212,24 @@ public class AStarPathfinder2D : MonoBehaviour
         // The actual current position only needs to be physically
         // reachable from the selected graph node.
         // --------------------------------------------------------
+        Node2D startNode = grid.GetNearestReachableNode(startPosition);
 
-        Node2D startNode =
-            grid.GetNearestReachableNode(
-                startPosition
-            );
+        Node2D targetNode =grid.GetNearestReachableNode(targetPosition);
 
-
-        Node2D targetNode =
-            grid.GetNearestReachableNode(
-                targetPosition
-            );
-
-
-        if (
-            startNode == null ||
-            targetNode == null
-        )
-        {
+        if (startNode == null || targetNode == null){
             return null;
         }
-
 
         // ========================================================
         // SPECIAL CASE
         // ========================================================
-
-        if (
-            startNode ==
-            targetNode
-        )
-        {
-            if (
-                grid.IsPhysicalSegmentClear(
-                    startPosition,
-                    targetPosition
-                )
-            )
-            {
-                return new Vector2[]
-                {
-                    targetPosition
-                };
+        if (startNode == targetNode){
+            if (grid.IsPhysicalSegmentClear(startPosition,targetPosition)){
+                return new Vector2[]{targetPosition};
             }
-
 
             return null;
         }
-
 
         // ========================================================
         // COMPLETELY LOCAL SEARCH STATE
@@ -400,76 +237,33 @@ public class AStarPathfinder2D : MonoBehaviour
         //
         // This is what makes every agent's search independent.
         //
-        Dictionary<Node2D, SearchRecord> records =
-            new Dictionary<Node2D, SearchRecord>();
+        Dictionary<Node2D, SearchRecord> records = new Dictionary<Node2D, SearchRecord>();
 
+        HashSet<Node2D> closedSet = new HashSet<Node2D>();
 
-        HashSet<Node2D> closedSet =
-            new HashSet<Node2D>();
+        Heap<SearchRecord> openSet = new Heap<SearchRecord>(Mathf.Max(1,grid.MaxSize));
 
+        SearchRecord startRecord = GetOrCreateRecord(startNode,records);
 
-        Heap<SearchRecord> openSet =
-            new Heap<SearchRecord>(
-                Mathf.Max(
-                    1,
-                    grid.MaxSize
-                )
-            );
+        startRecord.gCost = 0;
 
+        startRecord.hCost =GetDistance(startNode,targetNode);
 
-        SearchRecord startRecord =
-            GetOrCreateRecord(
-                startNode,
-                records
-            );
+        startRecord.parent = null;
 
-
-        startRecord.gCost =
-            0;
-
-
-        startRecord.hCost =
-            GetDistance(
-                startNode,
-                targetNode
-            );
-
-
-        startRecord.parent =
-            null;
-
-
-        openSet.Add(
-            startRecord
-        );
-
+        openSet.Add(startRecord);
 
         // ========================================================
         // SEARCH
         // ========================================================
+        while (openSet.Count > 0){
+            SearchRecord currentRecord = openSet.RemoveFirst();
 
-        while (
-            openSet.Count > 0
-        )
-        {
-            SearchRecord currentRecord =
-                openSet.RemoveFirst();
+            Node2D currentNode = currentRecord.node;
 
+            closedSet.Add(currentNode);
 
-            Node2D currentNode =
-                currentRecord.node;
-
-
-            closedSet.Add(
-                currentNode
-            );
-
-
-            if (
-                currentNode ==
-                targetNode
-            )
-            {
+            if (currentNode == targetNode){
                 return
                     BuildWorldPath(
                         startPosition,
@@ -480,111 +274,56 @@ public class AStarPathfinder2D : MonoBehaviour
                     );
             }
 
+            List<Node2D> neighbours = grid.GetNeighbors(currentNode);
 
-            List<Node2D> neighbours =
-                grid.GetNeighbors(
-                    currentNode
-                );
-
-
-            if (
-                neighbours == null
-            )
-            {
+            if (neighbours == null){
                 continue;
             }
 
-
-            foreach (
-                Node2D neighbour
-                in neighbours
-            )
-            {
+            foreach (Node2D neighbour in neighbours){
                 if (
                     neighbour == null ||
                     !neighbour.walkable ||
-                    closedSet.Contains(
-                        neighbour
-                    )
-                )
-                {
+                    closedSet.Contains(neighbour)
+                ){
                     continue;
                 }
 
-
                 SearchRecord neighbourRecord =
-                    GetOrCreateRecord(
-                        neighbour,
-                        records
-                    );
-
+                    GetOrCreateRecord(neighbour,records);
 
                 // ------------------------------------------------
                 // BASE MOVEMENT COST
                 // ------------------------------------------------
-
-                int movementCost =
-                    GetDistance(
-                        currentNode,
-                        neighbour
-                    );
-
+                int movementCost = GetDistance(currentNode,neighbour);
 
                 // ------------------------------------------------
                 // STORM COST
                 // ------------------------------------------------
+                if (storm != null){
+                    float stormCost = Mathf.Max(1f,storm.GetTraversalCost(neighbour.worldPosition));
 
-                if (
-                    storm != null
-                )
-                {
-                    float stormCost =
-                        Mathf.Max(
-                            1f,
-                            storm.GetTraversalCost(
-                                neighbour.worldPosition
-                            )
-                        );
+                    float additionalStormCost = (stormCost -1f) * 10f;
 
-
-                    float additionalStormCost =
-                        (
-                            stormCost -
-                            1f
-                        ) *
-                        10f;
-
-
-                    movementCost +=
-                        Mathf.Max(
-                            0,
-                            Mathf.RoundToInt(
-                                additionalStormCost
-                            )
-                        );
+                    movementCost += Mathf.Max(0, Mathf.RoundToInt(additionalStormCost));
                 }
-
 
                 // ------------------------------------------------
                 // NODE PENALTY
                 // ------------------------------------------------
-
                 movementCost +=
                     Mathf.Max(
                         0,
                         neighbour.movementPenalty
                     );
 
-
                 int newCost =
                     currentRecord.gCost +
                     movementCost;
 
-
                 bool wasNeverReached =
                     neighbourRecord.gCost ==
                     int.MaxValue;
-
 
                 if (
                     wasNeverReached ||
@@ -595,17 +334,14 @@ public class AStarPathfinder2D : MonoBehaviour
                     neighbourRecord.gCost =
                         newCost;
 
-
                     neighbourRecord.hCost =
                         GetDistance(
                             neighbour,
                             targetNode
                         );
 
-
                     neighbourRecord.parent =
                         currentNode;
-
 
                     if (
                         wasNeverReached
@@ -625,23 +361,19 @@ public class AStarPathfinder2D : MonoBehaviour
             }
         }
 
-
         // No route exists.
         return null;
     }
 
-
     // ============================================================
     // SEARCH RECORD
     // ============================================================
-
     private SearchRecord GetOrCreateRecord(
         Node2D node,
         Dictionary<Node2D, SearchRecord> records
     )
     {
         SearchRecord record;
-
 
         if (
             !records.TryGetValue(
@@ -655,22 +387,18 @@ public class AStarPathfinder2D : MonoBehaviour
                     node
                 );
 
-
             records.Add(
                 node,
                 record
             );
         }
 
-
         return record;
     }
-
 
     // ============================================================
     // BUILD WORLD PATH
     // ============================================================
-
     private Vector2[] BuildWorldPath(
         Vector2 startPosition,
         Vector2 targetPosition,
@@ -682,10 +410,8 @@ public class AStarPathfinder2D : MonoBehaviour
         List<Vector2> waypoints =
             new List<Vector2>();
 
-
         Node2D currentNode =
             targetNode;
-
 
         while (
             currentNode !=
@@ -696,9 +422,7 @@ public class AStarPathfinder2D : MonoBehaviour
                 currentNode.worldPosition
             );
 
-
             SearchRecord currentRecord;
-
 
             if (
                 !records.TryGetValue(
@@ -710,10 +434,8 @@ public class AStarPathfinder2D : MonoBehaviour
                 return null;
             }
 
-
             currentNode =
                 currentRecord.parent;
-
 
             if (
                 currentNode == null
@@ -723,9 +445,7 @@ public class AStarPathfinder2D : MonoBehaviour
             }
         }
 
-
         waypoints.Reverse();
-
 
         // Always finish at the actual requested world position.
         if (
@@ -743,7 +463,6 @@ public class AStarPathfinder2D : MonoBehaviour
                     waypoints.Count - 1
                 ];
 
-
             if (
                 Vector2.Distance(
                     finalGridPoint,
@@ -757,7 +476,6 @@ public class AStarPathfinder2D : MonoBehaviour
                 );
             }
         }
-
 
         // ========================================================
         // VALIDATE THE WORLD ROUTE
@@ -783,7 +501,6 @@ public class AStarPathfinder2D : MonoBehaviour
         Vector2 previous =
             startPosition;
 
-
         for (
             int i = 0;
             i < waypoints.Count;
@@ -793,18 +510,14 @@ public class AStarPathfinder2D : MonoBehaviour
             Vector2 current =
                 waypoints[i];
 
-
             bool firstSegment =
                 i == 0;
-
 
             bool finalSegment =
                 i ==
                 waypoints.Count - 1;
 
-
             bool clear;
-
 
             if (
                 firstSegment ||
@@ -826,7 +539,6 @@ public class AStarPathfinder2D : MonoBehaviour
                     );
             }
 
-
             if (
                 !clear
             )
@@ -834,21 +546,17 @@ public class AStarPathfinder2D : MonoBehaviour
                 return null;
             }
 
-
             previous =
                 current;
         }
-
 
         return
             waypoints.ToArray();
     }
 
-
     // ============================================================
     // GRID DISTANCE
     // ============================================================
-
     private int GetDistance(
         Node2D nodeA,
         Node2D nodeB
@@ -860,13 +568,11 @@ public class AStarPathfinder2D : MonoBehaviour
                 nodeB.gridX
             );
 
-
         int dstY =
             Mathf.Abs(
                 nodeA.gridY -
                 nodeB.gridY
             );
-
 
         if (
             dstX >
@@ -882,7 +588,6 @@ public class AStarPathfinder2D : MonoBehaviour
                     dstY
                 );
         }
-
 
         return
             14 *
