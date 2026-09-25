@@ -198,7 +198,7 @@ MonoBehaviour:
   antColony: {fileID: 592423575}
   comparisonManager: {fileID: 1867633593}
   timeStepSeconds: 1
-  smoothingWindowSteps: 10
+  smoothingWindowSeconds: 30
   graphMetric: 0
   showGraph: 1
   windowRect:
@@ -214,7 +214,11 @@ MonoBehaviour:
   graphTextureWidth: 700
   graphTextureHeight: 300
   exportFilePrefix: food_performance
+  exportFullCsv: 0
   exportPng: 1
+  showReopenTab: 1
+  reopenTabWidth: 44
+  reopenTabHeight: 26
 --- !u!1 &98584657
 GameObject:
   m_ObjectHideFlags: 0
@@ -10502,7 +10506,7 @@ GameObject:
   - component: {fileID: 1286413946}
   m_Layer: 0
   m_Name: Storm
-  m_TagString: Untagged
+  m_TagString: Storm
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -10537,14 +10541,14 @@ MonoBehaviour:
   mapWidth: 60
   mapHeight: 30
   mapCenter: {x: 0, y: 0}
-  noiseScale: 0.12
-  movementSpeed: 0.2
-  movementDirection: {x: 1, y: 0.3}
+  noiseScale: 0.3
+  movementSpeed: 0.3
+  movementDirection: {x: 1, y: 0.7}
   stormThreshold: 0.55
   transitionWidth: 0.46
   randomiseOnStart: 1
   randomOffsetRange: 1000
-  maxCostMultiplier: 3
+  maxCostMultiplier: 30
   textureWidth: 256
   textureHeight: 256
   visualUpdateInterval: 0.05

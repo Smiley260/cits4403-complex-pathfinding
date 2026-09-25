@@ -605,6 +605,8 @@ public class AStarAgent2D : MonoBehaviour
         // SAME MOVEMENT MODEL AS ANT.CS
         // ========================================================
 
+        currentVelocity = currentVelocity * storm.GetSpeedReduction(transform.position);
+
         Vector2 desiredVelocity =
             desiredDirection *
             GetMaxSpeed();
@@ -616,8 +618,7 @@ public class AStarAgent2D : MonoBehaviour
 
 
         float moveDistance =
-            currentVelocity.magnitude *
-            Time.deltaTime;
+            currentVelocity.magnitude * Time.deltaTime;
 
 
         if (
