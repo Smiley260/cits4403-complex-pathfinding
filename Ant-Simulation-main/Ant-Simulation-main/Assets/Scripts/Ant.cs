@@ -138,7 +138,7 @@ public class Ant : MonoBehaviour
 		RecoverFromWall();
 
 		float stormMult = storm.GetSpeedReduction(currentPosition);
-		actualSpeed = settings.maxSpeed * (1-stormMult);
+		actualSpeed = settings.maxSpeed * stormMult;
 
 		Vector2 steerForce = randomSteerForce + pheromoneSteerForce + obstacleAvoidForce;
 

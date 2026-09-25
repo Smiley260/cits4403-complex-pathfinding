@@ -280,7 +280,7 @@ public class Storm : MonoBehaviour
     {
 		float stormCost = Mathf.Max(1f,GetTraversalCost(worldPosition)) -1f;
 		float stormMult = stormCost/(stormCost+ 15);
-        return stormMult;
+        return 1f - stormMult;
     }
 
     public float GetTraversalCost(Vector2 worldPosition)
