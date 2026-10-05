@@ -245,14 +245,6 @@ public class AStarAgent2D : MonoBehaviour
         // ========================================================
 
         RecalculatePathImmediately();
-
-
-        if (
-            HasPath
-        )
-        {
-            InitialiseVelocityFromPath();
-        }
     }
 
 
@@ -604,8 +596,9 @@ public class AStarAgent2D : MonoBehaviour
         // ========================================================
         // SAME MOVEMENT MODEL AS ANT.CS
         // ========================================================
-
-        currentVelocity = currentVelocity * storm.GetSpeedReduction(transform.position);
+        // The storm only changes the target/max speed through
+        // GetMaxSpeed(). Do NOT multiply currentVelocity again,
+        // otherwise the storm slowdown is applied twice to A*.
 
         Vector2 desiredVelocity =
             desiredDirection *
@@ -996,48 +989,6 @@ public class AStarAgent2D : MonoBehaviour
 
 
     // ============================================================
-    // INITIAL VELOCITY
-    // ============================================================
-
-    private void InitialiseVelocityFromPath()
-    {
-        if (
-            !HasPath
-        )
-        {
-            currentVelocity =
-                Vector2.zero;
-
-
-            return;
-        }
-
-
-        Vector2 direction =
-            currentPath[pathIndex] -
-            (Vector2)transform.position;
-
-
-        if (
-            direction.sqrMagnitude <=
-            0.0001f
-        )
-        {
-            currentVelocity =
-                Vector2.zero;
-
-
-            return;
-        }
-
-
-        currentVelocity =
-            direction.normalized *
-            GetMaxSpeed();
-    }
-
-
-    // ============================================================
     // INDEPENDENT A* SEARCH
     // ============================================================
 
@@ -1210,13 +1161,9 @@ public class AStarAgent2D : MonoBehaviour
         }
 
 
-        if (
-            currentVelocity.sqrMagnitude <=
-            0.0001f
-        )
-        {
-            InitialiseVelocityFromPath();
-        }
+        // Leave currentVelocity unchanged here.
+        // If the agent is starting from rest, SteerTowards() will
+        // accelerate it toward GetMaxSpeed(), matching the ant.
     }
 
 

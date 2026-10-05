@@ -118,6 +118,13 @@ public class GlobalSettings : MonoBehaviour
 
 
     // ==================================================
+    // STATE
+    // ==================================================
+
+    private bool originalValuesStored;
+
+
+    // ==================================================
     // CACHED OBJECTS
     // ==================================================
 
@@ -260,6 +267,10 @@ public class GlobalSettings : MonoBehaviour
 
         originalPheromoneSensorDistance =
             antSettings.sensorDst;
+
+
+        originalValuesStored =
+            true;
     }
 
 
@@ -401,11 +412,89 @@ public class GlobalSettings : MonoBehaviour
 
 
     // ==================================================
-    // RESET TIME SCALE
+    // RESTORE ORIGINAL SETTINGS
+    // ==================================================
+
+    void RestoreOriginalSettings()
+    {
+        if (!originalValuesStored)
+        {
+            Time.timeScale = 1f;
+            return;
+        }
+
+
+        // --------------------------------------------------
+        // Restore AntSettings
+        // --------------------------------------------------
+
+        if (antSettings != null)
+        {
+            antSettings.maxSpeed =
+                originalAntSpeed;
+
+            antSettings.acceleration =
+                originalAntAcceleration;
+
+            antSettings.pheromoneEvaporateTime =
+                originalPheromoneLifetime;
+
+            antSettings.pheromoneRunOutTime =
+                originalPheromoneRunOut;
+
+            antSettings.pheromoneWeight =
+                originalPheromoneWeight;
+
+            antSettings.dstBetweenMarkers =
+                originalPheromoneSpacing;
+
+            antSettings.sensorSize =
+                originalPheromoneSensorSize;
+
+            antSettings.sensorDst =
+                originalPheromoneSensorDistance;
+        }
+
+
+        // --------------------------------------------------
+        // Restore Storm
+        // --------------------------------------------------
+
+        if (storm != null)
+        {
+            storm.movementSpeed =
+                originalStormSpeed;
+
+            storm.maxCostMultiplier =
+                originalStormCost;
+        }
+
+
+        // --------------------------------------------------
+        // Always restore normal Unity time
+        // --------------------------------------------------
+
+        Time.timeScale =
+            1f;
+    }
+
+
+    // ==================================================
+    // DISABLE
+    // ==================================================
+
+    void OnDisable()
+    {
+        RestoreOriginalSettings();
+    }
+
+
+    // ==================================================
+    // DESTROY
     // ==================================================
 
     void OnDestroy()
     {
-        Time.timeScale = 1f;
+        RestoreOriginalSettings();
     }
 }

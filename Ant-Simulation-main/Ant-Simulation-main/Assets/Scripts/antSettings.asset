@@ -22,7 +22,7 @@ MonoBehaviour:
   collisionRadius: 0.15
   dstBetweenMarkers: 0.75
   pheromoneEvaporateTime: 60
-  pheromoneRunOutTime: 1.2752428e+10
+  pheromoneRunOutTime: 30
   pheromoneWeight: 2
   perceptionRadius: 2.5
   useHomeMarkers: 1
