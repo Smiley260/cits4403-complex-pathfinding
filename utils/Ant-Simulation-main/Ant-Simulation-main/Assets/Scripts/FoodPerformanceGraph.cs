@@ -2095,7 +2095,7 @@ public class FoodPerformanceGraph : MonoBehaviour
 
         string path =
             System.IO.Path.Combine(
-                ".\\Statistics",
+                "..\\data\\Storm_Statistics",
                 exportFilePrefix +
                 "_" +
                 timestamp +
