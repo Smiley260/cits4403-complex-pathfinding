@@ -158,8 +158,8 @@ MonoBehaviour:
   antSpeedMultiplier: 1
   antAccelerationMultiplier: 1
   pheromoneLifetimeMultiplier: 1
-  pheromoneRunOutMultiplier: 1
-  pheromoneWeightMultiplier: 1
+  pheromoneRunOutMultiplier: 2
+  pheromoneWeightMultiplier: 2
   pheromoneSpacingMultiplier: 1
   pheromoneSensorSizeMultiplier: 1
   pheromoneSensorDistanceMultiplier: 1
@@ -10548,7 +10548,7 @@ MonoBehaviour:
   transitionWidth: 0.46
   randomiseOnStart: 1
   randomOffsetRange: 1000
-  maxCostMultiplier: 30
+  maxCostMultiplier: 1
   textureWidth: 256
   textureHeight: 256
   visualUpdateInterval: 0.05

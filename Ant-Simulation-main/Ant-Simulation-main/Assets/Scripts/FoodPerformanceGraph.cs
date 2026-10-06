@@ -2095,7 +2095,7 @@ public class FoodPerformanceGraph : MonoBehaviour
 
         string path =
             System.IO.Path.Combine(
-                Application.persistentDataPath,
+                ".\\Statistics",
                 exportFilePrefix +
                 "_" +
                 timestamp +
@@ -2208,7 +2208,7 @@ public class FoodPerformanceGraph : MonoBehaviour
 
             Debug.Log(
                 "Food performance CSV exported to:\n" +
-                path
+                System.IO.Path.GetFullPath(path)
             );
         }
         catch (Exception exception)

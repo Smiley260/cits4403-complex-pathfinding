@@ -1,0 +1,6 @@
+﻿time_seconds,ant_cumulative_food_per_agent,astar_cumulative_food_per_agent,ant_food_gained_this_step,astar_food_gained_this_step,ant_smoothed_food_per_agent_per_second,astar_smoothed_food_per_agent_per_second,,STATISTICS SUMMARY,,
+1.000000,0.000000,0.000000,0,0,0.000000,0.000000,Statistic,Ant,A*
+2.000000,0.000000,0.000000,0,0,0.000000,0.000000,Final cumulative / agent,0.0000,0.0000
+3.000000,0.000000,0.000000,0,0,0.000000,0.000000,Mean cumulative / agent,0.0000,0.0000
+4.000000,0.000000,0.000000,0,0,0.000000,0.000000,Mean return rate / agent / s,0.0000,0.0000
+5.000000,0.000000,0.000000,0,0,0.000000,0.000000,Mean smoothed rate / agent / s,0.0000,0.0000
